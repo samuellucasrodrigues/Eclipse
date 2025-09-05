@@ -1,7 +1,7 @@
 package unidade01;
 import java.util.*;
 
-public class SomarDoisNumero {
+class SomarDoisNumero {
 	
 	public static Scanner sc = new Scanner(System.in);
 	
