@@ -75,7 +75,5 @@ public class Aplicacao {
         });
         
         System.out.println("Servidor rodando na porta 4567...");
-        System.out.println("Formulário: http://localhost:4567/formulario.html");
-        System.out.println("API Produtos: http://localhost:4567/produtos");
     }
 }
