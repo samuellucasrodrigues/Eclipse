@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Controle de Estoque - Produtos</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Controle de Estoque - Produtos</h1>
+        
+        <!-- Inserir Produto -->
+        <div class="section">
+            <h2>Inserir Produto</h2>
+            <form id="formInserir">
+                <div class="form-group">
+                    <label>Nome:</label>
+                    <input type="text" name="nome" required>
+                </div>
+                <div class="form-group">
+                    <label>Preço:</label>
+                    <input type="number" step="0.01" name="preco" required>
+                </div>
+                <div class="form-group">
+                    <label>Quantidade:</label>
+                    <input type="number" name="quantidade" required>
+                </div>
+                <button type="submit">Inserir Produto</button>
+            </form>
+        </div>
+
+        <!-- Gerenciar Produtos -->
+        <div class="section">
+            <h2>Gerenciar Produtos</h2>
+            
+            <div class="form-group">
+                <label>ID do Produto:</label>
+                <input type="number" id="produtoId">
+            </div>
+            
+            <button onclick="consultarProduto()">Consultar</button>
+            <button onclick="removerProduto()">Remover</button>
+            <button onclick="listarProdutos()">Listar Todos</button>
+            
+            <div id="resultado" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- Lista de Produtos -->
+        <div class="section">
+            <h2>Lista de Produtos</h2>
+            <div id="listaProdutos"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:4567";
+        
+        // Inserir Produto
+        document.getElementById('formInserir').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const produto = {
+                nome: formData.get('nome'),
+                preco: parseFloat(formData.get('preco')),
+                quantidade: parseInt(formData.get('quantidade'))
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/produto`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(produto)
+                });
+                
+                const result = await response.json();
+                alert(result.success ? 'Produto inserido com sucesso!' : 'Erro ao inserir produto!');
+                e.target.reset();
+                listarProdutos();
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao conectar com o servidor!');
+            }
+        });
+        
+        // Consultar Produto
+        async function consultarProduto() {
+            const id = document.getElementById('produtoId').value;
+            if (!id) {
+                alert('Digite um ID!');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/produto/${id}`);
+                const produto = await response.json();
+                document.getElementById('resultado').innerHTML = 
+                    `<pre>${JSON.stringify(produto, null, 2)}</pre>`;
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao consultar produto!');
+            }
+        }
+        
+        // Remover Produto
+        async function removerProduto() {
+            const id = document.getElementById('produtoId').value;
+            if (!id) {
+                alert('Digite um ID!');
+                return;
+            }
+            
+            if (confirm(`Tem certeza que deseja excluir o produto ID ${id}?`)) {
+                try {
+                    const response = await fetch(`${API_BASE}/produto/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    alert(result.success ? 'Produto excluído com sucesso!' : 'Erro ao excluir produto!');
+                    listarProdutos();
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao conectar com o servidor!');
+                }
+            }
+        }
+        
+        // Listar Produtos
+        async function listarProdutos() {
+            try {
+                const response = await fetch(`${API_BASE}/produtos`);
+                const produtos = await response.json();
+                
+                let html = '<ul>';
+                produtos.forEach(produto => {
+                    html += `<li>ID: ${produto.id} | Nome: ${produto.nome} | Preço: R$ ${produto.preco} | Quantidade: ${produto.quantidade}</li>`;
+                });
+                html += '</ul>';
+                
+                document.getElementById('listaProdutos').innerHTML = html;
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar produtos!');
+            }
+        }
+        
+        // Carregar lista ao iniciar
+        listarProdutos();
+    </script>
+</body>
+</html>
